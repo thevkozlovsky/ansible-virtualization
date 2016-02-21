@@ -1,0 +1,151 @@
+---
+
+- name: HDD | Create HDD
+  shell: 'qemu-img create -f qcow2 /var/lib/libvirt/images/vm-{{ vm_name }}.qcow2 {{ vm_hdd_size }}'
+
+
+- name: HDD | Load NBD module
+  shell: 'modprobe nbd max_part=16'
+
+
+- name: HDD | Create NBD 
+  shell: 'qemu-nbd -c /dev/nbd{{ vm_num }} /var/lib/libvirt/images/vm-{{ vm_name }}.qcow2'
+
+
+
+- name: HDD | copy sfdisk script
+  template: 
+    src: sfdisk.j2 
+    dest: '/root/sfdisk{{ vm_num }}.sh'
+
+
+- name: HDD | sfdisk
+  shell: 'sh /root/sfdisk{{ vm_num }}.sh'
+
+
+- name: HDD | rm sfdisk
+  shell: 'rm /root/sfdisk{{ vm_num }}.sh'
+
+
+
+- name: HDD | mkswap
+  shell: 'mkswap /dev/nbd{{ vm_num }}p1'
+
+
+- name: HDD | mkfs
+  shell: 'mkfs.ext4 /dev/nbd{{ vm_num }}p2'
+
+
+- name: 'HDD | mkdir /mnt/vm-{{ vm_name }}'
+  file: 
+    path: '/mnt/vm-{{ vm_name }}'
+    state: directory
+
+
+- name: HDD | mount
+  shell: 'mount /dev/nbd{{ vm_num }}p2 /mnt/vm-{{ vm_name }}'
+
+
+- name: HDD | copy system
+  shell: 'cp -rp /srv/vm/images/jessie/* /mnt/vm-{{ vm_name }}'
+  register: system_files_setup
+
+
+- name: HDD | create vm /etc/fstab
+  template: 
+    src: fstab.j2 
+    dest: '/mnt/vm-{{ vm_name }}/etc/fstab'
+  when: system_files_setup.changed
+
+
+- name: HDD | create vm /etc/network/intefaces
+  template: 
+    src: interfaces.j2
+    dest: '/mnt/vm-{{ vm_name }}/etc/network/interfaces'
+  when: system_files_setup.changed 
+
+
+- name: HDD | specify vm hostname
+  shell: 'echo "{{ vm_name }}" > /mnt/vm-{{ vm_name }}/etc/hostname'
+  when: system_files_setup.changed
+
+
+- name: HDD | create vm /etc/hosts
+  template: 
+    src: hosts.j2
+    dest: '/mnt/vm-{{ vm_name }}/etc/hosts'
+  when: system_files_setup.changed
+
+
+- name: HDD | specify current user password for new vm
+  shell: echo "{{ lookup('template', '../templates/user-password-inputs.j2') }}" | passwd root -R /mnt/vm-{{ vm_name }}
+  when: system_files_setup.changed
+
+
+- name: HDD | create /root/.ssh on new vm
+  file: 
+    path: '/mnt/vm-{{ vm_name }}/root/.ssh'
+    state: directory
+  when: system_files_setup.changed
+
+
+- name: HDD | copy orchestrating server's public key to vm authorized key
+  copy:
+    src: '~/.ssh/id_rsa.pub'
+    dest: '/mnt/vm-{{ vm_name }}/root/.ssh/authorized_keys'
+  when: system_files_setup.changed
+
+
+- name: HDD | mount dev
+  shell: 'mount --bind /dev/ /mnt/vm-{{ vm_name }}/dev'
+
+
+- name: HDD | mount proc
+  shell: 'chroot /mnt/vm-{{ vm_name }} mount -t proc none /proc'
+
+
+- name: HDD | mount sysfs
+  shell: 'chroot /mnt/vm-{{ vm_name }} mount -t sysfs none /sys'
+
+
+- name: HDD | install image grub
+  shell: 'LANG=C DEBIAN_FRONTEND=noninteractive chroot /mnt/vm-{{ vm_name }}  apt-get install -y -q linux-image-amd64 grub2'
+
+
+- name: test
+  shell: '{{ item }}'
+  with_items:
+    - 'chroot /mnt/vm-{{ vm_name }} rm -rf /etc/ssh/ssh_host_*'
+    - 'chroot /mnt/vm-{{ vm_name }} ssh-keygen -A'
+
+
+- name: HDD | install grub
+  shell: 'chroot /mnt/vm-{{ vm_name }} grub-install /dev/nbd{{ vm_num }}'
+
+
+- name: HDD | update  grub
+  shell: 'chroot /mnt/vm-{{ vm_name }} update-grub'
+
+
+- name: HDD | sed grub
+  shell: 'sed -i "s|/dev/nbd{{ vm_num }}p2|/dev/vda2|g" /mnt/vm-{{ vm_name }}/boot/grub/grub.cfg'
+
+
+- name: HDD | umount 
+  shell: 'chroot /mnt/vm-{{ vm_name }} umount /proc/ /sys /dev'
+  tags: test
+
+
+- name: HDD | grub install
+  shell: 'grub-install /dev/nbd{{ vm_num }} --root-directory=/mnt/vm-{{ vm_name }} --modules="biosdisk part_msdos"'
+  tags: test
+
+
+- name: HDD | unmount vm filesystem
+  shell: 'umount /mnt/vm-{{ vm_name }}'
+  tags: test
+
+
+- name: HDD | delete nbd
+  shell: 'qemu-nbd -d /dev/nbd{{ vm_num }}'
+  tags: test

@@ -1,0 +1,4 @@
+---
+
+- name: DEBOOT | create debian source
+  command: '/usr/sbin/debootstrap --arch=amd64 --include=sudo,vim,mc,locales,openssh-server jessie /srv/vm/images/jessie http://{{ apt_host }}/debian creates=/srv/vm/images/wheezy'

@@ -1,0 +1,17 @@
+---
+
+- name: check file
+  stat: 
+    path: '/var/lib/libvirt/images/vm-{{vm_name}}.qcow2'
+  register: hdd_file
+  tags: hdd
+
+
+- include: create_hdd.yml
+  tags: hdd
+  when: hdd_file.stat.exists == False
+
+
+- include: create_vm.yml
+  tags: vm
+

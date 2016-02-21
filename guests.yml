@@ -1,0 +1,4 @@
+
+- hosts: kvm-guest
+  roles:
+    - { role: guest-install, tags: ['guest-install'] }

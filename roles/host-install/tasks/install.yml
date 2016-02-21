@@ -1,0 +1,20 @@
+---
+
+- name: KVM | Install packages
+  apt: 
+    pkg: '{{ item }}'
+    state: present
+    update_cache: yes
+  with_items:
+    - libvirt-bin     # виртуальная оболочка API.
+    - qemu-kvm        # основной эмулятор, сама виртуализация (модуль для ядра)
+    - bridge-utils    # утилиты для конфигурирования Linux Ethernet мост.
+    - debootstrap
+    - python-libvirt  # Require for 'virt' ansible module
+
+
+- name: KVM | Add admin to kvm-group
+  user: 
+    name: '{{ ansible_ssh_user }}'
+    groups: libvirt
+    append: yes 

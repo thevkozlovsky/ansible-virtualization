@@ -1,0 +1,5 @@
+sfdisk /dev/nbd{{vm_num}} -D -uM << EOF
+,{{vm_swap_size}},82
+;
+EOF
+

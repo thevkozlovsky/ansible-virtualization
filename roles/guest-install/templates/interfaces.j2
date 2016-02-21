@@ -1,0 +1,25 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug eth0
+{% if vm_ipv4 %}
+iface eth0 inet static
+address {{ vm_ipv4_address }}/{{ vm_ipv4_mask }}
+gateway {{ vm_ipv4_gateway }}
+dns-nameservers {{ vm_ipv4_dns }}
+{% endif %}
+
+{% if vm_ipv6 %}
+iface eth0 inet6 static
+address {{ vm_ipv6_address }}
+netmask {{ vm_ipv6_mask }}
+gateway {{ vm_ipv6_gateway }}
+dns-nameservers {{ vm_ipv6_dns }}
+{% endif %}

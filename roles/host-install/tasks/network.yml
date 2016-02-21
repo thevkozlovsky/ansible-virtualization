@@ -1,0 +1,8 @@
+---
+
+- name: KVM | Copy interfaces settings
+  template: 
+    src: interfaces.j2 
+    dest: /etc/network/interfaces
+  notify:
+    - restart network # restart network if configuration changes

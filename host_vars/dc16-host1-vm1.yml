@@ -1,0 +1,36 @@
+# Debian 1
+
+# kvm-host
+ansible_ssh_host: 5.9.45.106
+ansible_ssh_user: root
+
+
+# vnc (port: 5900)
+vnc_password: "kBz4Yp3UyVEPMr"
+
+
+# vm
+vm_num: 1  # uniq 0-15
+vm_name: debian1
+vm_hdd_size: 10G
+vm_memory: 2048
+vm_swap_size: 2048
+vm_cpu: 2
+vm_bridge: virbr0
+vm_root_password: "3yMAqs3yTcuKvZ"
+
+
+# net
+vm_ipv4: true
+vm_ipv4_address: 5.9.244.210
+vm_ipv4_mask: 29
+vm_ipv4_gateway: 5.9.244.209
+vm_ipv4_dns: 213.133.98.98 213.133.99.99 213.133.100.100
+
+vm_ipv6: true
+vm_ipv6_address: 2a01:4f8:163:326a::d1
+vm_ipv6_mask: 64
+vm_ipv6_gateway: fe80::1
+vm_ipv6_dns: 2a01:4f8:0:a0a1::add:1010 2a01:4f8:0:a102::add:9999 2a01:4f8:0:a111::add:9898
+
+vm_mac: '00:52:54:56:88:88'

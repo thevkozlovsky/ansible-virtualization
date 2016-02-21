@@ -1,0 +1,22 @@
+---
+
+- name: VM | create vm
+  virt: 
+    command: define
+    name: '{{vm_name}}' 
+    xml: "{{ lookup('template', '../templates/vm_domain.j2') }}"
+    uri: 'qemu:///system'
+
+
+- name: VM | autostart vm
+  virt: 
+    command: autostart
+    name: '{{ vm_name}}'
+    uri: 'qemu:///system'
+
+
+- name: VM | start vm
+  virt: 
+    state: running 
+    name: '{{ vm_name }}'
+    uri: 'qemu:///system'

@@ -1,0 +1,5 @@
+- name: restart network
+  shell: 'ip a flush dev eth0 && /etc/init.d/networking restart'
+  #service: 
+  #  name: networking 
+  #  state: restarted

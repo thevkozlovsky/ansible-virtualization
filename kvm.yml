@@ -1,0 +1,4 @@
+
+- hosts: kvm-hosts
+  roles:
+    - { role: host-install, tags: ['host-install'] }

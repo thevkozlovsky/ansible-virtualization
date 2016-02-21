@@ -1,0 +1,10 @@
+[kvm-hosts]
+dc16-host1
+
+[kvm-guest]
+dc16-host1-vm1
+dc16-host1-vm2
+dc16-host1-vm3
+dc16-host1-vm4
+dc16-host1-vm5
+dc16-host1-vm6
